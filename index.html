@@ -7,7 +7,30 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <h1>Welcome to the Charity Water Game Prototype</h1>
+    <h1>Charity Water Maze Game</h1>
+    <!-- Scoreboard section -->
+    <div id="scoreboard">
+        <span id="score-label">Score:</span>
+        <span id="score">0</span>
+    </div>
+    <!-- Timer section -->
+    <div id="timer-container">
+        <span id="timer-label">Time Left:</span>
+        <span id="timer">60</span> <!-- 60 seconds as an example -->
+    </div>
+    <!-- Level display section -->
+    <div id="level-container">
+        <span id="level-label">Level:</span>
+        <span id="level">1</span>
+    </div>
+    <!-- Message container for win message and water fact -->
+    <div id="message-container"></div>
+    <!-- Maze container (this is where the maze will be shown) -->
+    <div id="maze-container">
+        <!-- The maze will be created here with JavaScript -->
+    </div>
+    <!-- Donate button -->
+    <button id="donate-btn">Donate</button>
     <script src="script.js"></script>
 </body>
 </html>
