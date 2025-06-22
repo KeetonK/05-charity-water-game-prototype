@@ -21,6 +21,9 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
+  min-height: 100vh;
+  /* Add a gradient background from yellow to blue */
+  background: linear-gradient(135deg, #FFC907 0%, #2E9DF7 100%);
 }
 
 #maze-container {
@@ -151,4 +154,12 @@ h1 {
   width: 28px;
   height: 28px;
   display: block;
+}
+
+.cw-logo {
+  display: block;
+  margin: 0 auto 10px auto;
+  max-width: 320px;
+  width: 80%;
+  height: auto;
 }
