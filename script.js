@@ -36,21 +36,53 @@ let timerInterval; // Use a single timer variable
 const timerSpan = document.getElementById('timer');
 timerSpan.textContent = timeLeft;
 
-// Countdown timer function
-function startTimer() {
-  timerInterval = setInterval(function() {
-    if (timeLeft > 0) {
-      timeLeft--;
-      timerSpan.textContent = timeLeft;
-    } else {
-      gameOver = true;
-      clearInterval(timerInterval);
-      alert('Time is up! Game over.');
-      restartBtn.style.display = 'inline-block';
-      donateBtn.style.display = 'inline-block';
-    }
-  }, 1000);
+// Hide the donate button at the start
+const donateBtn = document.getElementById('donate-btn');
+donateBtn.style.display = 'none';
+
+// Difficulty settings
+const difficulties = {
+  easy: 15,
+  normal: 10,
+  hard: 5
+};
+
+// Track if the game has started (after difficulty selection)
+let gameStarted = false;
+
+// Get difficulty buttons
+const difficultyContainer = document.getElementById('difficulty-container');
+const easyBtn = document.getElementById('easy-btn');
+const normalBtn = document.getElementById('normal-btn');
+const hardBtn = document.getElementById('hard-btn');
+
+// Hide maze and scoreboard until difficulty is selected
+document.getElementById('maze-container').style.display = 'none';
+document.getElementById('scoreboard').style.display = 'none';
+document.getElementById('timer-container').style.display = 'none';
+document.getElementById('level-container').style.display = 'none';
+
+// Function to start the game with selected difficulty
+function selectDifficulty(level) {
+  // Set timeLeft based on difficulty
+  timeLeft = difficulties[level];
+  timerSpan.textContent = timeLeft;
+  // Show maze and scoreboard
+  document.getElementById('maze-container').style.display = 'grid';
+  document.getElementById('scoreboard').style.display = 'block';
+  document.getElementById('timer-container').style.display = 'block';
+  document.getElementById('level-container').style.display = 'block';
+  // Hide difficulty buttons
+  difficultyContainer.style.display = 'none';
+  // Start the timer
+  gameStarted = true;
+  startTimer();
 }
+
+// Add event listeners to difficulty buttons
+easyBtn.onclick = function() { selectDifficulty('easy'); };
+normalBtn.onclick = function() { selectDifficulty('normal'); };
+hardBtn.onclick = function() { selectDifficulty('hard'); };
 
 // Function to render the maze on the screen
 function renderMaze(mazeArray) {
@@ -147,15 +179,12 @@ function renderMazeWithPlayer(mazeArray, playerRow, playerCol) {
   }
 }
 
-// Initial render with player
+// Initial render with player (but maze is hidden until difficulty is chosen)
 renderMazeWithPlayer(maze, playerRow, playerCol);
 // Update the score display
 const scoreSpan = document.getElementById('score');
 scoreSpan.textContent = score;
 
-// Hide the donate button at the start
-const donateBtn = document.getElementById('donate-btn');
-donateBtn.style.display = 'none';
 // Create and hide the restart button at the start
 let restartBtn = document.getElementById('restart-btn');
 if (!restartBtn) {
@@ -176,11 +205,46 @@ const waterFacts = [
   'Every $1 invested in clean water can yield $4–$12 in economic returns.'
 ];
 
+// Get audio elements for sound effects
+const winSound = document.getElementById('win-sound');
+const loseSound = document.getElementById('lose-sound');
+
+// Countdown timer function
+function startTimer() {
+  // Clear any previous timer to avoid multiple intervals
+  clearInterval(timerInterval);
+  timerInterval = setInterval(function() {
+    // Only count down if the game is started and not over
+    if (gameStarted && !gameOver && timeLeft > 0) {
+      timeLeft--;
+      timerSpan.textContent = timeLeft;
+      // Debug: log the timer value
+      // console.log(`Timer: ${timeLeft}`);
+      if (timeLeft === 0) {
+        gameOver = true;
+        clearInterval(timerInterval);
+        alert('Time is up! Game over.');
+        // Play lose sound effect after alert (so browser allows it)
+        if (loseSound) {
+          loseSound.currentTime = 0;
+          loseSound.play().catch(() => {}); // Play sound, ignore errors
+        }
+        // Show restart and donate buttons if you want, or reset game
+        restartGame();
+      }
+    }
+  }, 1000);
+}
+
+// Track how many times the player has hit the rock
+let rockHits = 0;
+
 // Listen for keydown events to move the player
 // Arrow keys or WASD
 window.addEventListener('keydown', function(event) {
-  if (gameOver) {
-    return; // Stop movement if game is over
+  // Only allow movement after game has started
+  if (!gameStarted || gameOver) {
+    return; // Stop movement if game is not started or is over
   }
   let newRow = playerRow;
   let newCol = playerCol;
@@ -217,6 +281,8 @@ window.addEventListener('keydown', function(event) {
       mazeContainer.classList.add('flash');
       setTimeout(function() {
         mazeContainer.classList.remove('flash');
+        // Hide the maze box so only the congratulations section is visible
+        mazeContainer.style.display = 'none';
         // Show a win message above the maze with centered buttons
         const messageContainer = document.getElementById('message-container');
         const randomFact = waterFacts[Math.floor(Math.random() * waterFacts.length)];
@@ -229,8 +295,6 @@ window.addEventListener('keydown', function(event) {
             <button id='restart-btn'>Restart</button>
           </div>
         </div>`;
-        // Clear the maze box
-        mazeContainer.innerHTML = '';
         // Add event listeners to the new buttons
         document.getElementById('donate-btn').onclick = function() {
           window.open('https://www.charitywater.org/donate', '_blank');
@@ -238,6 +302,11 @@ window.addEventListener('keydown', function(event) {
         document.getElementById('restart-btn').onclick = function() {
           restartGame();
         };
+        // Play win sound effect after DOM updates (so browser allows it)
+        if (winSound) {
+          winSound.currentTime = 0;
+          winSound.play().catch(() => {}); // Play sound, ignore errors
+        }
       }, 700); // Match flash animation duration
     } else if (maze[newRow][newCol] === 'R') {
       // If player tries to move into a rock, subtract 5 points
@@ -249,19 +318,29 @@ window.addEventListener('keydown', function(event) {
       setTimeout(function() {
         mazeContainer.classList.remove('shake');
       }, 400); // Match shake animation duration
+
+      // Track how many times the rock has been hit
+      rockHits++;
+      // Debug: log rock hits
+      // console.log(`Rock hits: ${rockHits}`);
+      // If hit twice, break the rock and turn it into an open path
+      if (rockHits === 2) {
+        maze[newRow][newCol] = 0; // Break the rock
+        // Show a message to the player
+        alert('You broke the rock! You can now go through.');
+        // Redraw the maze to show the broken rock
+        renderMazeWithPlayer(maze, playerRow, playerCol);
+      }
     }
     // If it's a wall (1), do nothing (can't move)
   }
 });
 
-// Start the timer when the page loads
-startTimer();
-
 // Restart game logic as a function for reuse
 function restartGame() {
   score = 0;
-  timeLeft = 60;
   gameOver = false;
+  gameStarted = false;
   // Reset player position
   for (let row = 0; row < maze.length; row++) {
     for (let col = 0; col < maze[row].length; col++) {
@@ -271,14 +350,23 @@ function restartGame() {
       }
     }
   }
+  // Reset rock if it was broken
+  maze[2][5] = 'R';
+  rockHits = 0;
+  // Hide maze and scoreboard until difficulty is selected again
+  document.getElementById('maze-container').style.display = 'none';
+  document.getElementById('scoreboard').style.display = 'none';
+  document.getElementById('timer-container').style.display = 'none';
+  document.getElementById('level-container').style.display = 'none';
+  // Show difficulty buttons again
+  difficultyContainer.style.display = 'block';
   // Reset score and timer display
   scoreSpan.textContent = score;
-  timerSpan.textContent = timeLeft;
+  timerSpan.textContent = '';
   // Redraw the maze and player
   renderMazeWithPlayer(maze, playerRow, playerCol);
-  // Restart the timer
+  // Stop any running timer
   clearInterval(timerInterval);
-  startTimer();
   // Clear the win message
   document.getElementById('message-container').innerHTML = '';
 }

@@ -13,6 +13,12 @@
     <div style="text-align:center; margin-bottom: 10px;">
       <img src="img/cw_logo_horizontal.png" alt="Charity: water logo" class="cw-logo">
     </div>
+    <!-- Difficulty selection section -->
+    <div id="difficulty-container" style="text-align:center; margin-bottom: 16px;">
+        <button id="easy-btn">Easy</button>
+        <button id="normal-btn">Normal</button>
+        <button id="hard-btn">Hard</button>
+    </div>
     <!-- Scoreboard section -->
     <div id="scoreboard">
         <span id="score-label">Score:</span>
@@ -21,7 +27,7 @@
     <!-- Timer section -->
     <div id="timer-container">
         <span id="timer-label">Time Left:</span>
-        <span id="timer">60</span> <!-- 60 seconds as an example -->
+        <span id="timer"></span>
     </div>
     <!-- Level display section -->
     <div id="level-container">
@@ -36,6 +42,19 @@
     </div>
     <!-- Donate button -->
     <button id="donate-btn">Donate</button>
+    <!-- Sound effects for win and lose (local files) -->
+    <audio id="win-sound" src="sounds/win-sound.mp3"></audio>
+    <audio id="lose-sound" src="sounds/lose-sound.mp3"></audio>
     <script src="script.js"></script>
+    <!-- Footer with charity: water links -->
+    <footer style="margin-top:30px; text-align:center; font-size:1em;">
+      <hr style="margin-bottom:10px;">
+      <p>
+        Learn more at 
+        <a href="https://www.charitywater.org/" target="_blank" rel="noopener">charity: water</a>
+        &nbsp;|&nbsp;
+        <a href="https://www.charitywater.org/donate" target="_blank" rel="noopener">Donate</a>
+      </p>
+    </footer>
 </body>
 </html>
